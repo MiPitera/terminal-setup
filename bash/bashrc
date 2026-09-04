@@ -1,0 +1,49 @@
+# ~/.bashrc - managed by terminal-setup (https://github.com/<you>/terminal-setup)
+# Do not edit directly; edit the repo and re-run install.sh.
+# Machine-specific additions belong in ~/.bashrc.local, which is never touched.
+
+# If not running interactively, don't do anything.
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+# Locate the repo. When ~/.bashrc is a symlink into the checkout we can resolve
+# it; install.sh --copy rewrites the fallback below to an absolute path.
+if [[ -z "${TERMINAL_SETUP_DIR:-}" ]]; then
+    _ts_self="${BASH_SOURCE[0]}"
+    if [[ -L "$_ts_self" ]] && command -v readlink >/dev/null 2>&1; then
+        _ts_self="$(readlink -f "$_ts_self")"
+    fi
+    TERMINAL_SETUP_DIR="$(cd "$(dirname "$_ts_self")/.." 2>/dev/null && pwd)"
+    unset _ts_self
+fi
+
+# Fall back to the conventional locations if the resolved path has no modules.
+if [[ ! -d "${TERMINAL_SETUP_DIR:-}/bash/bashrc.d" ]]; then
+    for _ts_try in "$HOME/terminal-setup" "$HOME/.config/terminal-setup" /opt/terminal-setup; do
+        if [[ -d "$_ts_try/bash/bashrc.d" ]]; then
+            TERMINAL_SETUP_DIR="$_ts_try"
+            break
+        fi
+    done
+    unset _ts_try
+fi
+export TERMINAL_SETUP_DIR
+
+# Load modules in lexical order. Each module is self-contained and degrades
+# silently when the tool it configures is absent.
+if [[ -d "$TERMINAL_SETUP_DIR/bash/bashrc.d" ]]; then
+    for _ts_rc in "$TERMINAL_SETUP_DIR"/bash/bashrc.d/*.sh; do
+        [[ -r "$_ts_rc" ]] && . "$_ts_rc"
+    done
+    unset _ts_rc
+else
+    echo "terminal-setup: modules not found (TERMINAL_SETUP_DIR=$TERMINAL_SETUP_DIR)" >&2
+fi
+
+# User overrides, kept out of version control.
+[[ -r "$HOME/.bashrc.local" ]] && . "$HOME/.bashrc.local"
+
+# Never let the last module's exit status leak into the first prompt.
+true

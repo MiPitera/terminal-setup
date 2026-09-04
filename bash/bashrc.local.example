@@ -1,0 +1,16 @@
+# ~/.bashrc.local - machine-specific settings.
+# Created once by install.sh and never overwritten on subsequent runs.
+# Sourced last, so anything here overrides the repo modules.
+
+# Show the hostname in the prompt even outside SSH (handy on VMs):
+# export TERMINAL_SETUP_SHOW_HOST=1
+
+# Disable powerline glyphs if this machine has no Nerd Font:
+# export TERMINAL_SETUP_POWERLINE=0
+
+# Example: VS Code snap CLI
+# [ -r "$HOME/snap/code/current/.local/bin/env" ] && . "$HOME/snap/code/current/.local/bin/env"
+
+# Example: per-machine proxy
+# export http_proxy=http://10.0.0.1:3128
+# export https_proxy=$http_proxy
