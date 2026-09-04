@@ -56,6 +56,7 @@ bash/bashrc.d/          moduły ładowane leksykalnie
   30-aliases.sh         aliasy i kolory
   40-completion.sh      bash-completion + __git_ps1 (różne ścieżki per distro)
   50-prompt.sh          prompt powerline
+  60-ssh.sh             zgodność TERM przy ssh
   90-tools.sh           PATH, nvm, bun, deno, cargo, go, Android SDK
 bash/bashrc.local.example  szablon ustawień lokalnych
 kitty/kitty.conf        konfiguracja kitty
@@ -87,6 +88,25 @@ Segment gałęzi wymaga `__git_ps1`. Moduł `40-completion.sh` szuka go kolejno 
 `/usr/lib/git-core/git-sh-prompt` (Debian/Ubuntu/Kali),
 `/usr/share/git-core/contrib/completion/git-prompt.sh` (Fedora) i kilku innych.
 Gdy go nie ma, prompt po prostu pomija segment gałęzi.
+
+## SSH
+
+kitty ustawia `TERM=xterm-kitty`. `ssh` przekazuje tę wartość dalej, a zdalny
+host zwykle nie ma wpisu terminfo `xterm-kitty` — readline nie potrafi wtedy
+poprawnie przerysować linii i edycja wklejonej komendy zostawia śmieci
+(`./chisel client remote 10.10.15.147/23    :8080    1234`).
+
+Moduł `60-ssh.sh` daje trzy rzeczy:
+
+* `ssh` — funkcja opakowująca, wymusza `TERM=xterm-256color`. Działa zawsze,
+  nic nie instaluje na zdalnym hoście. Aktywna tylko gdy `TERM=xterm-kitty`,
+  więc poza kitty `ssh` jest zwykłym `ssh`.
+* `kssh` — `kitten ssh`, kopiuje terminfo kitty na zdalny host i zachowuje
+  funkcje kitty. Wymaga zapisywalnego `$HOME` po drugiej stronie.
+* `fixterm` — ratunek dla sesji już rozjechanej (reverse shell, `su`, tmux
+  odpalony przed poprawką): ustawia TERM, robi `stty sane` i `reset`.
+
+Żeby ominąć wrapper jednorazowo: `command ssh host`.
 
 ## Nowy motyw kitty
 
