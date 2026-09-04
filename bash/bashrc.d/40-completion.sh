@@ -31,3 +31,12 @@ if ! declare -F __git_ps1 >/dev/null 2>&1; then
     done
     unset _gp
 fi
+
+# Readline colouring. Both default to off, which is why completion candidates
+# render as flat white even though LS_COLORS is populated. Set here rather than
+# in ~/.inputrc so the whole config stays inside the repo.
+bind 'set colored-stats on'              # colour completions by file type
+bind 'set colored-completion-prefix on'  # highlight the already-typed prefix
+bind 'set completion-ignore-case on'     # Tab-complete regardless of case
+bind 'set show-all-if-ambiguous on'      # one Tab lists candidates, not two
+bind 'set menu-complete-display-prefix on'

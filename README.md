@@ -89,6 +89,21 @@ Segment gałęzi wymaga `__git_ps1`. Moduł `40-completion.sh` szuka go kolejno 
 `/usr/share/git-core/contrib/completion/git-prompt.sh` (Fedora) i kilku innych.
 Gdy go nie ma, prompt po prostu pomija segment gałęzi.
 
+## Kolory
+
+* `ls`, `grep` — aliasy z `--color=auto` + `LS_COLORS` z `dircolors` (`30-aliases.sh`).
+  Własną paletę wrzuć do `~/.dircolors`, moduł ją wykryje.
+* Podpowiedzi Tab — readline domyślnie ma `colored-stats` i
+  `colored-completion-prefix` **wyłączone**, przez co kandydaci są białi mimo
+  ustawionego `LS_COLORS`. `40-completion.sh` włącza je przez `bind`, razem z
+  `completion-ignore-case` i `show-all-if-ambiguous`.
+* `man` — `20-shell-options.sh` ustawia `LESS_TERMCAP_*` i `GROFF_NO_SGR`.
+
+Bash nie ma kolorowania składni w trakcie pisania (to funkcja zsh/fish). Jeśli
+tego brakuje: [ble.sh](https://github.com/akinomyoga/ble.sh) — dokłada
+highlighting, podpowiedzi z historii i lepsze menu uzupełniania. Nie jest
+instalowany przez `install.sh`.
+
 ## SSH
 
 kitty ustawia `TERM=xterm-kitty`. `ssh` przekazuje tę wartość dalej, a zdalny
