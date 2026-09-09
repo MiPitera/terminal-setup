@@ -57,6 +57,7 @@ bash/bashrc.d/          moduły ładowane leksykalnie
   40-completion.sh      bash-completion + __git_ps1 (różne ścieżki per distro)
   50-prompt.sh          prompt powerline
   60-ssh.sh             zgodność TERM przy ssh
+  61-tty-guard.sh       przywracanie dyscypliny linii po narzędziach raw
   90-tools.sh           PATH, nvm, bun, deno, cargo, go, Android SDK
 bash/bashrc.local.example  szablon ustawień lokalnych
 kitty/kitty.conf        konfiguracja kitty
@@ -122,6 +123,24 @@ Moduł `60-ssh.sh` daje trzy rzeczy:
   odpalony przed poprawką): ustawia TERM, robi `stty sane` i `reset`.
 
 Żeby ominąć wrapper jednorazowo: `command ssh host`.
+
+## Narzędzia w trybie raw (socat, impacket, reverse shelle)
+
+Osobny objaw, inna przyczyna niż TERM. `socat file:/dev/tty,raw,echo=0`,
+`impacket-psexec`, shelle złapane przez `nc` — wszystkie przestawiają tty w tryb
+raw i mają przywrócić ustawienia przy wyjściu. Gdy połączenie padnie albo
+proces zostanie zabity, nie przywracają. Zostaje `-onlcr`: `\n` przesuwa kursor
+w dół, ale nie wraca na kolumnę 0, więc każdy kolejny prompt startuje coraz
+dalej w prawo, a wyjście schodkuje. Wygląda to jak zły rozmiar terminala, ale
+rozmiar jest poprawny — zepsuta jest dyscyplina linii.
+
+`61-tty-guard.sh` robi snapshot dyscypliny przy pierwszym prompcie, porównuje
+przy każdym kolejnym i przywraca, gdy komenda ją zmieniła.
+
+* `TERMINAL_SETUP_TTY_GUARD=0` — wyłącza guard,
+* `ttysave` — przyjmij bieżące ustawienia jako nową bazę (po świadomym
+  `stty -ixon` itp.),
+* `fixterm` — pełny reset, gdy rozjechał się też sam ekran; odświeża bazę.
 
 ## Nowy motyw kitty
 

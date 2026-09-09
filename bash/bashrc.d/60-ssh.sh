@@ -28,4 +28,6 @@ fixterm() {
     export TERM=xterm-256color
     stty sane
     tput reset 2>/dev/null || reset
+    # Adopt the freshly sane discipline as the guard's baseline (61-tty-guard.sh).
+    declare -F ttysave >/dev/null 2>&1 && ttysave
 }
