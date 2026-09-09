@@ -31,3 +31,21 @@ fixterm() {
     # Adopt the freshly sane discipline as the guard's baseline (61-tty-guard.sh).
     declare -F ttysave >/dev/null 2>&1 && ttysave
 }
+
+# Print a paste-ready snippet for a remote shell that scrolls the input line
+# horizontally - a line rendered as "<...>" with the start cut off - instead of
+# wrapping it onto the next row.
+#
+# Cause: the remote has no terminfo entry for its $TERM (a reverse shell
+# inherits an empty or bogus one). Readline then cannot read the autowrap (am)
+# capability and falls back to horizontal scrolling; "bind 'set
+# horizontal-scroll-mode off'" does not override that, only a resolvable TERM
+# does. A reverse shell also never negotiates geometry the way ssh does, so
+# pin the rows and columns from this terminal at the same time.
+ptyfix() {
+    local cols rows
+    cols=$(tput cols 2>/dev/null); [[ -n "$cols" ]] || cols=80
+    rows=$(tput lines 2>/dev/null); [[ -n "$rows" ]] || rows=24
+    printf 'for t in xterm-256color xterm vt100; do infocmp "$t" >/dev/null 2>&1 && { export TERM="$t"; break; }; done; stty rows %s cols %s\n' \
+        "$rows" "$cols"
+}

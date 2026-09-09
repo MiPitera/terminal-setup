@@ -142,6 +142,29 @@ przy każdym kolejnym i przywraca, gdy komenda ją zmieniła.
   `stty -ixon` itp.),
 * `fixterm` — pełny reset, gdy rozjechał się też sam ekran; odświeża bazę.
 
+## Ucinana linia poleceń w zdalnym shellu
+
+Objaw: edytowana komenda renderuje się jako `<...>` z uciętym początkiem i nie
+zawija na kolejny wiersz, mimo że w terminalu jest miejsce. Cała komenda jest
+w buforze — readline przewija ją poziomo zamiast zawijać.
+
+Przyczyna: zdalny host nie ma wpisu terminfo dla swojego `$TERM` (reverse shell
+dziedziczy pusty albo śmieciowy). Readline nie odczyta wtedy capability
+autowrap (`am`) i wymusza przewijanie poziome. `bind 'set
+horizontal-scroll-mode off'` tego **nie** obejdzie — pomaga wyłącznie
+rozwiązywalny `TERM`.
+
+`ptyfix` wypisuje gotowy do wklejenia snippet: wybiera pierwszy wpis terminfo,
+który na zdalnym faktycznie istnieje, i przypina geometrię z bieżącego
+terminala (reverse shell nie negocjuje jej tak jak ssh).
+
+```
+$ ptyfix
+for t in xterm-256color xterm vt100; do infocmp "$t" >/dev/null 2>&1 && { export TERM="$t"; break; }; done; stty rows 24 cols 80
+```
+
+Wklej wynik do zdalnego shella — najlepiej zaraz po podniesieniu go do pty.
+
 ## Nowy motyw kitty
 
 Wrzuć plik `.conf` do `kitty/themes/` i uruchom `./install.sh --kitty-only
