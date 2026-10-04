@@ -114,11 +114,14 @@ poprawnie przerysować linii i edycja wklejonej komendy zostawia śmieci
 
 Moduł `60-ssh.sh` daje trzy rzeczy:
 
-* `ssh` — funkcja opakowująca, wymusza `TERM=xterm-256color`. Działa zawsze,
-  nic nie instaluje na zdalnym hoście. Aktywna tylko gdy `TERM=xterm-kitty`,
-  więc poza kitty `ssh` jest zwykłym `ssh`.
-* `kssh` — `kitten ssh`, kopiuje terminfo kitty na zdalny host i zachowuje
-  funkcje kitty. Wymaga zapisywalnego `$HOME` po drugiej stronie.
+* `ssh` — w kitty (gdy jest `kitten`) idzie przez `kitten ssh`: kopiuje terminfo
+  i shell integration na zdalny host, więc `ctrl+shift+t` / `ctrl+shift+enter`
+  otwierają nową zakładkę/okno na tym samym hoście i w tym samym katalogu.
+  Wymaga `sh` i zapisywalnego `$HOME` po drugiej stronie. Przy użyciu
+  nieinteraktywnym (`ssh host cmd | ...`) albo bez `kitten` spada do `sshp`.
+  Poza kitty `ssh` jest zwykłym `ssh`.
+* `sshp` — zwykłe `ssh` z `TERM=xterm-256color`. Działa zawsze, nic nie
+  instaluje (cele Windows, `$HOME` tylko do odczytu).
 * `fixterm` — ratunek dla sesji już rozjechanej (reverse shell, `su`, tmux
   odpalony przed poprawką): ustawia TERM, robi `stty sane` i `reset`.
 

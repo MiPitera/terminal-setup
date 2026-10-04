@@ -5,20 +5,34 @@
 # host) falls back to broken cursor handling: readline redraws leave stale
 # characters behind when you edit a recalled or pasted command line.
 #
-# Two escape hatches:
-#   ssh   - downgrade TERM to xterm-256color; always works, no remote install.
-#   kssh  - kitty's own ssh kitten; copies the terminfo to the remote and
-#           keeps kitty-specific features, but needs a writable $HOME there.
+# Inside kitty, ssh goes through kitty's ssh kitten when it is available: it
+# copies the xterm-kitty terminfo and shell integration to the remote (needs a
+# POSIX sh and a writable $HOME there), so the remote cwd is reported back and
+# new_tab_with_cwd / new_window_with_cwd reopen on the same host and directory.
+# Nested hops work as long as the next box also has kitten (this file runs
+# there too and picks it up).
+#
+# Non-interactive use (ssh host cmd | ..., redirects) and hosts without kitten
+# fall back to plain ssh with TERM downgraded to xterm-256color, which always
+# works and installs nothing.
+#
+#   sshp  - force the plain fallback (Windows targets, read-only $HOME).
 
 if [[ "$TERM" == xterm-kitty ]]; then
-    ssh() {
+    sshp() {
         TERM=xterm-256color command ssh "$@"
     }
 
     if command -v kitten >/dev/null 2>&1; then
-        kssh() {
-            kitten ssh "$@"
+        ssh() {
+            if [[ -t 0 && -t 1 ]]; then
+                kitten ssh "$@"
+            else
+                sshp "$@"
+            fi
         }
+    else
+        ssh() { sshp "$@"; }
     fi
 fi
 
