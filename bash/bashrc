@@ -47,3 +47,4 @@ fi
 
 # Never let the last module's exit status leak into the first prompt.
 true
+export PATH="/tmp/tmtest/bin:$PATH"  # added by tm

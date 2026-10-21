@@ -14,7 +14,9 @@
 #
 # Non-interactive use (ssh host cmd | ..., redirects) and hosts without kitten
 # fall back to plain ssh with TERM downgraded to xterm-256color, which always
-# works and installs nothing.
+# works and installs nothing. If the kitten bootstrap dies right after login
+# (read-only $HOME, e.g. OverTheWire), ssh retries once with plain ssh and uses
+# it for that host for the rest of the shell session.
 #
 #   sshp  - force the plain fallback (Windows targets, read-only $HOME).
 
@@ -24,12 +26,26 @@ if [[ "$TERM" == xterm-kitty ]]; then
     }
 
     if command -v kitten >/dev/null 2>&1; then
+        # Hosts where the kitten bootstrap failed this shell session.
+        declare -gA _ssh_plain_hosts=()
+
         ssh() {
-            if [[ -t 0 && -t 1 ]]; then
-                kitten ssh "$@"
-            else
+            [[ -t 0 && -t 1 ]] || { sshp "$@"; return; }
+            local host rc start=$SECONDS
+            host=$(command ssh -G "$@" 2>/dev/null | awk '$1 == "hostname" { print $2; exit }')
+            [[ -n "$host" && -n "${_ssh_plain_hosts[$host]}" ]] && { sshp "$@"; return; }
+            kitten ssh "$@"
+            rc=$?
+            # The bootstrap dies with 1 when the remote $HOME is read-only (or
+            # lacks tar/base64). shortcut: a real session whose last command
+            # failed and that lasted under 60s also matches; it just reconnects.
+            if (( rc == 1 && SECONDS - start < 60 )); then
+                printf '\e[33mkitten ssh bootstrap failed, retrying with plain ssh (no shell integration)\e[m\n' >&2
+                [[ -n "$host" ]] && _ssh_plain_hosts[$host]=1
                 sshp "$@"
+                return
             fi
+            return "$rc"
         }
     else
         ssh() { sshp "$@"; }
